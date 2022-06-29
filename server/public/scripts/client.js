@@ -3,6 +3,9 @@ $(document).ready(onReady);
 function onReady() {
     getSongs();
     $('#add').on('click', postSong);
+    $('#songsTableBody').on('click', '.btn-delete', deleteSong);
+    $('#songsTableBody').on('click', '.btn-rank', voteOnSong);
+    $
 }
 
 // get artist data from the server
@@ -15,12 +18,30 @@ function getSongs() {
         console.log("GET /songs response", response);
         // append data to the DOM
         for (let i = 0; i < response.length; i++) {
+            // console.log('response is', response[i]);
             $('#songsTableBody').append(`
                 <tr>
                     <td>${response[i].artist}</td>
                     <td>${response[i].track}</td>
                     <td>${response[i].rank}</td>
                     <td>${response[i].published}</td>
+                    <td>
+                    <button
+                        data-id = ${response[i].id}
+                        data-direction = "up"
+                        class = "btn-rank"
+                    >⬆️</button>
+                    
+                    <button
+                        data-id = ${response[i].id}
+                        data-direction = "down"
+                        class = "btn-rank"
+                    >⬇️</button>
+                    <button 
+                        data-id=${response[i].id}
+                        class = "btn-delete"
+                    >Delete</button>
+                    </td>
                 </tr>
             `);
         }
@@ -45,4 +66,35 @@ function postSong() {
         $('#published').val('')
         getSongs();
     });
+}
+
+function deleteSong(){
+    let songId = $(this).data('id');
+    $.ajax({
+        method: 'DELETE', // method and type are the same thing
+        url:`/songs/${songId}`
+    })
+    .then(function(response){
+        console.log('he gone');
+        getSongs();
+    })
+    .catch(function(error){
+        alert('sumn aint workin tryna delete this thang', error)
+    })
+}
+
+function voteOnSong(){
+    let songId = $(this).data('id');
+    let voteDirection = $(this).data('direction');
+
+    $.ajax({
+        method: 'PUT',
+        url: `/songs/rank/${songId}`,
+        data: {direction: voteDirection},
+    }).then(function(){
+        getSongs();
+    })
+    .catch(function(error){
+        alert('sumn aint workin with this thang', error)
+    })
 }
